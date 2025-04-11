@@ -304,6 +304,10 @@ class TestProductRoutes(TestCase):
         first_product = Product().deserialize(response.get_json()[0])
         self.assertEqual(first_product.available, first_available)
     
+    def test_an_unsupported_method(self):
+        response = self.client.post(f"{BASE_URL}/products", json={})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
     ######################################################################
     # Utility functions
     ######################################################################
