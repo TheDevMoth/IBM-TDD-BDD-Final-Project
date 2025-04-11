@@ -89,8 +89,8 @@ def create_products():
     #
     # Uncomment this line of code once you implement READ A PRODUCT
     #
-    # location_url = url_for("get_products", product_id=product.id, _external=True)
-    location_url = "/"  # delete once READ is implemented
+    location_url = url_for("get_products", product_id=product.id, _external=True)
+    # location_url = "/"  # delete once READ is implemented
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
 
@@ -109,13 +109,14 @@ def list_products():
     name = request.args.get("name")
     category = request.args.get("category")
     available = request.args.get("available")
+    app.logger.info("Request args: {name} {category} {available}")
     if name:
         products = [product for product in products if product.name == name]
     if category:
-        category = Category(int(category))
+        category = getattr(Category, category)
         products = [product for product in products if product.category == category]
     if available:
-        available = available == "True"
+        available = available in ["True", "true", 1]
         products = [product for product in products if product.available == available]
 
     serial = []
@@ -184,7 +185,3 @@ def delete_products(product_id):
     product.delete()
 
     return "", status.HTTP_204_NO_CONTENT
-
-#
-# PLACE YOUR CODE TO DELETE A PRODUCT HERE
-#

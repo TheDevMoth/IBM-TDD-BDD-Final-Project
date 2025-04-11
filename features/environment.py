@@ -3,7 +3,9 @@ Environment for Behave Testing
 """
 from os import getenv
 from selenium import webdriver
-
+from service import app
+from service.common import status
+from service.models import db, init_db, Product, Category
 WAIT_SECONDS = int(getenv('WAIT_SECONDS', '30'))
 BASE_URL = getenv('BASE_URL', 'http://localhost:8080')
 DRIVER = getenv('DRIVER', 'firefox').lower()

@@ -131,25 +131,46 @@ class TestProductRoutes(TestCase):
         self.assertEqual(new_product["available"], test_product.available)
         self.assertEqual(new_product["category"], test_product.category.name)
 
-        #
-        # Uncomment this code once READ is implemented
-        #
-
-        # # Check that the location header was correct
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_product = response.get_json()
-        # self.assertEqual(new_product["name"], test_product.name)
-        # self.assertEqual(new_product["description"], test_product.description)
-        # self.assertEqual(Decimal(new_product["price"]), test_product.price)
-        # self.assertEqual(new_product["available"], test_product.available)
-        # self.assertEqual(new_product["category"], test_product.category.name)
+        # Check that the location header was correct
+        response = self.client.get(location)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_product = response.get_json()
+        self.assertEqual(new_product["name"], test_product.name)
+        self.assertEqual(new_product["description"], test_product.description)
+        self.assertEqual(Decimal(new_product["price"]), test_product.price)
+        self.assertEqual(new_product["available"], test_product.available)
+        self.assertEqual(new_product["category"], test_product.category.name)
 
     def test_create_product_with_no_name(self):
         """It should not Create a Product without a name"""
         product = self._create_products()[0]
         new_product = product.serialize()
         del new_product["name"]
+        logging.debug("Product no name: %s", new_product)
+        response = self.client.post(BASE_URL, json=new_product)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_create_product_with_invalid_available(self):
+        """It should not Create a Product without an invalid available"""
+        product = self._create_products()[0]
+        new_product = product.serialize()
+        new_product['available'] = 'nu'
+        logging.debug("Product no name: %s", new_product)
+        response = self.client.post(BASE_URL, json=new_product)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_product_with_an_empty_product(self):
+        """It should not Create a Product without an invalid price"""
+        new_product = {}
+        logging.debug("Product no name: %s", new_product)
+        response = self.client.post(BASE_URL, json=new_product)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+    def test_create_product_with_invalid_Category(self):
+        """It should not Create a Product without an invalid Category"""
+        product = self._create_products()[0]
+        new_product = product.serialize()
+        new_product['category'] = 'nu'
         logging.debug("Product no name: %s", new_product)
         response = self.client.post(BASE_URL, json=new_product)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -262,7 +283,7 @@ class TestProductRoutes(TestCase):
             if product.category == first_category:
                 count += 1
 
-        response = self.client.get(BASE_URL, query_string=f"category={quote_plus(str(first_category.value))}")
+        response = self.client.get(BASE_URL, query_string=f"category={quote_plus(first_category.name)}") 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.get_json()), count)
         first_product = Product().deserialize(response.get_json()[0])
